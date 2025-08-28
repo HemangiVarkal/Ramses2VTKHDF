@@ -15,15 +15,17 @@ RAMSES uses **Adaptive Mesh Refinement (AMR)**, which is excellent for high-perf
 ---
 
 ## ✨ Key Features 
-
+- **Robust Field Handling**: Works across osyris versions; collects both scalars and vectors safely.
 - **Vectorized Spatial Filtering**: Filter your simulation subvolume using normalized ranges `--x-range/--y-range/--z-range` (0–1 relative to box length).  
-- **Parallel Conversion ⚡**: Process multiple snapshots in parallel using all available CPU cores.  
+- **Parallel Conversion ⚡**: Processes multiple snapshots concurrently using CPU cores, with fallback to serial execution if needed
 - **Field Management**:
   - List available fields with `--list-fields` 🔍  
   - Include only specific fields with `--fields density,velocity,…`  
 - **Dry-Run Mode 👀**: Preview conversion plans without writing files.  
 - **Metadata Embedding**: Stores CLI command, timestamp, and code version in output HDF5.  
-- **AMR-Level Selection**: Convert only a subset of AMR levels with `--level-start` and `--level-end`.  
+- **AMR-Level Selection**: Convert only a subset of AMR levels with `--level-start` and `--level-end`.
+
+> ⚠️ **Attention:** Snapshots must contain a mesh. Outputs without a mesh are skipped automatically, with detailed logging.
 
 ---
 
@@ -33,9 +35,22 @@ RAMSES uses **Adaptive Mesh Refinement (AMR)**, which is excellent for high-perf
 - Packages: `numpy`, `h5py`, `osyris`  
 - Optional: `concurrent.futures` (built-in for parallel processing)  
 
+Install via pip:
+
+```bash
+pip install numpy h5py osyris
+```
+
+Clone the Respository:
+
+```bash
+git clone https://github.com/HemangiVarkal/Ramses2VTKHDF.git
+cd src
+```
+
 ---
 
-## Usage Guide
+## 🚀 Usage Guide
 
 ### Quick Start Example
 
@@ -71,7 +86,7 @@ python3 ramses_to_vtkhdf.py --base-dir ./simulations --folder-name output_dir -n
 
 ---
 
-## CLI Arguments Overview
+## 📋 CLI Arguments Overview
 
 | Argument | Type | Required | Default | Notes |
 |----------|------|----------|---------|-------|
@@ -109,6 +124,20 @@ python3 ramses_to_vtkhdf.py --base-dir ./simulations --folder-name output_dir -n
 > ⚠️ **Important:** AMRBox stores degenerate per-cell blocks. VTK expects this format for OverlappingAMR. Do **not** collapse boxes unless familiar with VTK’s data structure.  
 
 ---
+
+## 📂 Output File Structure
+
+```lua
+<output-prefix>_00001.vtkhdf
+<output-prefix>_00002.vtkhdf
+...
+```
+- Each file contains levels, each with:
+    - AMRBox → cell index ranges
+    - CellData → scalars & vectors
+    - PointData & FieldData → placeholders for VTK readers
+- Metadata embedded in root group: command, timestamp, version
+
 
 ## 🗓️ Notes & Best Practices 
 
