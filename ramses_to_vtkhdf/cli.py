@@ -54,6 +54,19 @@ Tip on “normalized ranges”:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Library imports
+# ─────────────────────────────────────────────────────────────────────────────
+
+import os
+import argparse
+import logging
+
+from .converter import parse_output_numbers, parse_norm_range, parse_fields_arg, list_fields_for_snapshot
+from .parallel import run_parallel_conversion, setup_logging
+
+logger = logging.getLogger("ramses2vtkhdf")
+
+# ─────────────────────────────────────────────────────────────────────────────
 # CLI
 # ─────────────────────────────────────────────────────────────────────────────
 
