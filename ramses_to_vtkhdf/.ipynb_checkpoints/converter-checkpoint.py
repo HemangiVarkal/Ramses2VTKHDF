@@ -3,13 +3,6 @@
 
 """
 
-RAMSES → VTKHDF (Overlapping AMR) Converter
-===========================================
-
-Author: Hemangi Varkal
-
-Affiliation: Space Applications Centre, ISRO, Ahmedabad, Gujarat, India.
-
 ──────────────────────────────────────────────────────────────────────────────
 Description
 ──────────────────────────────────────────────────────────────────────────────
@@ -33,53 +26,6 @@ IT SUPPORTS:
  - Dry-run mode (--dry-run) to print the plan without writing files
  - Embedding run metadata (CLI command, timestamp, code version) in each output file
 
-──────────────────────────────────────────────────────────────────────────────
-CLI QUICK START (copy–paste, then tweak)
-──────────────────────────────────────────────────────────────────────────────
-Example run (filters a subvolume, includes extra fields):
-
-    python3 ramses_to_vtkhdf.py \
-        --base-dir ./simulations \
-        --folder-name output_dir \
-        --numbers 1,3,5-7 \
-        --output-prefix overlapping_amr \
-        --level-start 2 --level-end 5 \
-        --x-range 0.0:1.0 --y-range 0.0:1.0 --z-range 0.0:1.0 \
-        --fields density,pressure \
-        --verbose
-
-Exploration mode :
-
-    # Lists fields Osyris sees in the mesh (no conversion happens)
-    python3 ramses_to_vtkhdf.py --base-dir ./simulations --folder-name output_dir \
-        -n 5 --list-fields
-
-    # Dry-run: show counts after filters, but don’t write .vtkhdf
-    python3 ramses_to_vtkhdf.py --base-dir ./simulations --folder-name output_dir \
-        -n 5 --level-start 1 --dry-run --verbose
-
-Required args:
-
-    --base-dir         Path to your RAMSES run root directory.
-    --folder-name      Subfolder inside base-dir containing outputs.
-    -n / --numbers     Output numbers to process. Formats:
-                       "7" or "3,5,9" or "10-15"
-
-Optional args:
-
-    --output-prefix / -o   Prefix for output files (default: overlapping_amr)
-    --level-start / --level-end     AMR level filter (inclusive)
-    --x-range / --y-range / --z-range   Normalized ranges [0,1] over box length
-    --fields           Physical fields to be included (default: density, pressure, velocity)
-    --verbose          step-by-step narration
-    --list-fields      Only list available mesh fields and exit
-    --dry-run          Run everything except the actual write step
-
-Tip on “normalized ranges”:
-    RAMSES coordinates are in code/physical units. We divide by the simulation
-    box length (from metadata) so [0,1] always spans the full domain, regardless
-    of units.
-
 """
 
 
@@ -90,17 +36,11 @@ Tip on “normalized ranges”:
 from __future__ import annotations
 
 # Standard Library Imports
-import argparse
 import logging
-import os
 import shlex
 import sys
 import time
-from functools import partial
-from multiprocessing import cpu_count
 from typing import Dict, Iterable, List, Optional, Tuple
-
-import concurrent.futures
 
 # External Libraries
 import numpy as np
@@ -815,107 +755,6 @@ class RamsesToVtkHdfConverter:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Parallel driver
-# ─────────────────────────────────────────────────────────────────────────────
-
-def process_single_output(
-    output_num: int,
-    input_folder: str,
-    output_prefix: str,
-    fields: Optional[List[str]],
-    level_start: Optional[int],
-    level_end: Optional[int],
-    x_range_norm: Tuple[Optional[float], Optional[float]],
-    y_range_norm: Tuple[Optional[float], Optional[float]],
-    z_range_norm: Tuple[Optional[float], Optional[float]],
-    dry_run: bool,
-    verbose: bool,
-) -> None:
-    
-    """
-    Worker function executed in each process. It configures logging and runs conversion
-    for a single snapshot number.
-    """
-    
-    setup_logging(verbose)
-   
-    try:
-        conv = RamsesToVtkHdfConverter(
-            input_folder=input_folder,
-            output_prefix=output_prefix,
-            fields=fields,
-            level_start=level_start,
-            level_end=level_end,
-            x_range_norm=x_range_norm,
-            y_range_norm=y_range_norm,
-            z_range_norm=z_range_norm,
-            dry_run=dry_run,
-        )
-        conv.process_output(output_num)
-    except Exception:
-        # Catch any unexpected worker-level exceptions and log them
-        # Do not re-raise because we want other workers to continue
-        logger.exception("[worker %s] Unexpected worker error", output_num)
-
-
-def run_parallel_conversion(
-    output_numbers: List[int],
-    input_folder: str,
-    output_prefix: str,
-    fields: Optional[List[str]] = None,
-    level_start: Optional[int] = None,
-    level_end: Optional[int] = None,
-    x_range_norm: Tuple[Optional[float], Optional[float]] = (None, None),
-    y_range_norm: Tuple[Optional[float], Optional[float]] = (None, None),
-    z_range_norm: Tuple[Optional[float], Optional[float]] = (None, None),
-    dry_run: bool = False,
-    verbose: bool = False,
-) -> None:
-    
-    """
-    High-level parallel runner that dispatches conversion of multiple outputs.
-
-    If parallel execution fails, falls back to serial execution and continues on per-snapshot errors.
-    """
-    
-    nworkers = max(1, min(cpu_count(), len(output_numbers)))
-    logger.info("Starting on %d worker(s) for outputs %s", nworkers, output_numbers)
-    t0 = time.time()
-
-    worker = partial(
-        process_single_output,
-        input_folder=input_folder,
-        output_prefix=output_prefix,
-        fields=fields,
-        level_start=level_start,
-        level_end=level_end,
-        x_range_norm=x_range_norm,
-        y_range_norm=y_range_norm,
-        z_range_norm=z_range_norm,
-        dry_run=dry_run,
-        verbose=verbose,
-    )
-
-    # Try parallel execution first
-    try:
-        with concurrent.futures.ProcessPoolExecutor(max_workers=nworkers) as ex:
-            # ex.map will propagate exceptions from worker; worker itself logs and swallows; so this should be safe
-            list(ex.map(worker, output_numbers))
-    except Exception as e:
-        logger.error("Parallel execution failed: %s", e)
-        logger.info("Falling back to serial execution...")
-        
-        for num in output_numbers:
-            try:
-                worker(num)
-            except Exception as ew:
-                # Worker should already catch; this is a last-resort guard
-                logger.exception("Serial worker failed for output %s: %s", num, ew)
-
-    logger.info("Total elapsed: %.2fs", time.time() - t0)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Utility: list fields
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -952,118 +791,3 @@ def list_fields_for_snapshot(input_folder: str, output_num: int) -> List[str]:
         if f not in unique_fields:
             unique_fields.append(f)
     return unique_fields
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CLI
-# ─────────────────────────────────────────────────────────────────────────────
-
-def main() -> None:
-    
-    """
-    Parse CLI args and run the conversion pipeline.
-    """
-    
-    parser = argparse.ArgumentParser(description="VTKHDF AMR Generator from RAMSES Data (refactored)")
-
-    # Required inputs
-    parser.add_argument("--base-dir", type=str, required=True, help="Base directory containing simulation folders (REQUIRED)")
-    parser.add_argument("--folder-name", type=str, required=True, help="Folder inside base_dir to process (REQUIRED)")
-    parser.add_argument("-n", "--numbers", type=parse_output_numbers, required=True, help="Output numbers like '1', '1,3,5' or '2-7' (REQUIRED)")
-
-    # Output and level selection
-    parser.add_argument("-o", "--output-prefix", dest="output_prefix", default="overlapping_amr", help="Output file prefix (default: overlapping_amr)")
-    parser.add_argument("--level-start", type=int, default=None, help="Minimum AMR level to include (inclusive). Optional.")
-    parser.add_argument("--level-end", type=int, default=None, help="Maximum AMR level to include (inclusive). Optional.")
-
-    # Normalized ranges (single arg per axis)
-    parser.add_argument("--x-range", type=parse_norm_range, default=None, help="Normalized x range 'min:max' (e.g., 0.2:0.8, :0.7, 0.1:, :).")
-    parser.add_argument("--y-range", type=parse_norm_range, default=None, help="Normalized y range 'min:max'.")
-    parser.add_argument("--z-range", type=parse_norm_range, default=None, help="Normalized z range 'min:max'.")
-
-    # Field selection (replace per-field enable flags with a single argument)
-    parser.add_argument("--fields", type=parse_fields_arg, default=None, help="Comma-separated list of fields to include (e.g. density,velocity,magnetic_field). If omitted, sensible defaults are used.")
-    
-    parser.add_argument("--list-fields", action="store_true", help="List available fields in the first requested snapshot and exit.")
-
-    # Utility flags
-    parser.add_argument("--dry-run", action="store_true", help="Print plan without writing files.")
-    parser.add_argument("--verbose", action="store_true", help="Verbose logging.")
-
-    args = parser.parse_args()
-
-    # Configure logging early
-    setup_logging(args.verbose)
-
-    # Build absolute input folder path and validate
-    input_folder = os.path.join(os.path.abspath(args.base_dir), args.folder_name)
-    
-    if not os.path.exists(input_folder):
-        logger.error("Input folder not found: %s", input_folder)
-        raise FileNotFoundError(f"Input folder not found: {input_folder}")
-
-    
-    # Check level ranges
-    def positive_int(val):
-        try:
-            iv = int(val)
-            if iv < 0:
-                raise argparse.ArgumentTypeError(f"Invalid value: {val}. Must be non-negative.")
-            return iv
-        except ValueError:
-            raise argparse.ArgumentTypeError(f"Invalid integer value: {val}")
-    
-    if args.level_start is not None and args.level_end is not None:
-        if args.level_end < args.level_start:
-            parser.error(f"Invalid level range: end ({args.level_end}) < start ({args.level_start}).")
-
-
-    # Normalize default ranges: None -> (None,None)
-    def norm_default(r):
-        return (None, None) if r is None else r
-
-    x_range = norm_default(args.x_range)
-    y_range = norm_default(args.y_range)
-    z_range = norm_default(args.z_range)
-
-    # If user requested to list fields, inspect the first snapshot in args.numbers
-    if args.list_fields:
-        # pick first number (safe because parser ensured args.numbers exists)
-        first_num = args.numbers[0]
-        logger.info("Listing fields for snapshot %s in folder '%s'...", first_num, input_folder)
-        fields = list_fields_for_snapshot(input_folder, first_num)
-        
-        if fields:
-            print("Available fields (best-effort):")
-            for f in fields:
-                print(" -", f)
-        else:
-            print("No fields discovered (see logs for details).")
-        return
-
-    # Run conversion (fields argument may be None meaning use defaults+auto-detect)
-    try:
-        run_parallel_conversion(
-            output_numbers=args.numbers,
-            input_folder=input_folder,
-            output_prefix=args.output_prefix,
-            fields=args.fields,
-            level_start=args.level_start,
-            level_end=args.level_end,
-            x_range_norm=x_range,
-            y_range_norm=y_range,
-            z_range_norm=z_range,
-            dry_run=args.dry_run,
-            verbose=args.verbose,
-        )
-    except Exception as e:
-        logger.exception("FATAL: Unexpected error: %s", e)
-        raise
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Entry Point
-# ─────────────────────────────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    main()

@@ -1,0 +1,7 @@
+
+     seconds         %    STEP (rank=      1)
+       0.000      12.5    coarse levels           
+       0.000      86.7    refine                  
+       0.000       0.2    load balance            
+       0.000       0.5    particles               
+       0.000     100.0    TOTAL
