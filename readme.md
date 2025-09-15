@@ -9,8 +9,10 @@
 
 **Ramses2VTKHDF** is a Python package that converts **[RAMSES](https://ramses-organisation.readthedocs.io/en/latest/) simulation outputs** into
 **[VTKHDF](https://vtk.org/documentation/) OverlappingAMR** format.  
+
 It provides both a **command-line interface (CLI)** and a **Python API**, making it
 easy to visualize an analyze in [ParaView](https://docs.paraview.org/en/latest/) and other compatible tools.
+
 The package also includes test coverage, example scripts, and clear documentation,
 ensuring it is reproducible and accessible for scientific use.
 
