@@ -3,7 +3,6 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-brightgreen)]()
 [![Build Status](https://img.shields.io/badge/tests-passing-brightgreen)]()
-[![Made with Love](https://img.shields.io/badge/made%20with-love-pink.svg)]()
 
 
 ## Overview
@@ -49,7 +48,10 @@ pip install -r requirements.txt
 Example:
 
 ```bash
-python -m ramses_to_vtkhdf.cli     --base-dir ramses_outputs/     --folder-name sedov_3d/     -n 1     --output-prefix sedov_test     --fields density,velocity,pressure     --dry-run
+python -m ramses_to_vtkhdf.cli  --base-dir ramses_outputs/    
+        --folder-name sedov_3d/  -n 1   /
+        --output-prefix sedov_test     /
+        --fields density,velocity,pressure  --dry-run
 ```
 
 Key options:
@@ -101,6 +103,7 @@ This script:
 <output-prefix>_00001.vtkhdf
 <output-prefix>_00002.vtkhdf
 ...
+```
 
 ---
 
