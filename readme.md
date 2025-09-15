@@ -1,157 +1,190 @@
-# 🚀 RAMSES → VTKHDF (Overlapping AMR) Converter 
+# Ramses2VTKHDF: A Python tool for converting RAMSES outputs to VTKHDF
 
-**Author:** Hemangi Varkal  
-**Affiliation:** Space Applications Centre, ISRO, Ahmedabad, Gujarat, India  
-**Version:** 1.0.0  
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.9%2B-brightgreen)]()
+[![Build Status](https://img.shields.io/badge/tests-passing-brightgreen)]()
+[![Made with Love](https://img.shields.io/badge/made%20with-love-pink.svg)]()
 
----
 
-## 📃 Overview 
+## Overview
 
-This Python-based converter transforms **RAMSES simulation outputs** into **VTKHDF OverlappingAMR files**, ready for visualization in **ParaView** and other VTK-compatible tools.  
-
-RAMSES uses **Adaptive Mesh Refinement (AMR)**, which is excellent for high-performance simulations but not directly compatible with standard visualization pipelines. This script bridges that gap, enabling you to convert hierarchical AMR meshes into VTKHDF format while preserving spatial refinement, scalar fields, and vector fields.  
-
----
-
-## ✨ Key Features 
-- **Robust Field Handling**: Works across osyris versions; collects both scalars and vectors safely.
-- **Vectorized Spatial Filtering**: Filter your simulation subvolume using normalized ranges `--x-range/--y-range/--z-range` (0–1 relative to box length).  
-- **Parallel Conversion ⚡**: Processes multiple snapshots concurrently using CPU cores, with fallback to serial execution if needed
-- **Field Management**:
-  - List available fields with `--list-fields` 🔍  
-  - Include only specific fields with `--fields density,velocity,…`  
-- **Dry-Run Mode 👀**: Preview conversion plans without writing files.  
-- **Metadata Embedding**: Stores CLI command, timestamp, and code version in output HDF5.  
-- **AMR-Level Selection**: Convert only a subset of AMR levels with `--level-start` and `--level-end`.
-
-> ⚠️ **Attention:** Snapshots must contain a mesh. Outputs without a mesh are skipped automatically, with detailed logging.
+**Ramses2VTKHDF** is a Python package that converts **[RAMSES](https://ramses-organisation.readthedocs.io/en/latest/) simulation outputs** into
+**[VTKHDF](https://vtk.org/documentation/) OverlappingAMR** format.  
+It provides both a **command-line interface (CLI)** and a **Python API**, making it
+easy to visualize an analyze in [ParaView](https://docs.paraview.org/en/latest/) and other compatible tools.
+The package also includes test coverage, example scripts, and clear documentation,
+ensuring it is reproducible and accessible for scientific use.
 
 ---
 
-## 🛠️ Installation Requirements 
+## Features
 
-- Python ≥ 3.8  
-- Packages: `numpy`, `h5py`, `osyris`  
-- Optional: `concurrent.futures` (built-in for parallel processing)  
+- Convert RAMSES AMR outputs into VTKHDF OverlappingAMR files
+- Uses [Osyris](https://osyris.readthedocs.io/en/stable/) for data analysis and extraction
+- Support for both **scalar fields** (density, pressure, grav_potential) and
+  **vector fields** (velocity, magnetic_field, grav_acceleration)
+- Dry-run mode to preview what would be written without creating files
+- CLI and Python API for flexible use
+- Parallel conversion support for multiple outputs
+- Fully tested with `pytest`
 
-Install via pip:
+---
 
-```bash
-pip install numpy h5py osyris
-```
+## Installation
 
-Clone the Respository:
+Clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/HemangiVarkal/Ramses2VTKHDF.git
-cd src
+cd Ramses2VTKHDF
+pip install -r requirements.txt
 ```
 
 ---
 
-## 🚀 Usage Guide
+## Usage
 
-### Quick Start Example
+### Command-Line Interface (CLI)
 
-Convert snapshots 1, 3, and 5–7, including density and pressure, within a subvolume:
+Example:
 
 ```bash
-python3 ramses_to_vtkhdf.py \
-    --base-dir ./simulations \
-    --folder-name output_dir \
-    --numbers 1,3,5-7 \
-    --output-prefix overlapping_amr \
-    --level-start 2 --level-end 5 \
-    --x-range 0.0:1.0 --y-range 0.0:1.0 --z-range 0.0:1.0 \
-    --fields density,pressure \
-    --verbose
+python -m ramses_to_vtkhdf.cli     --base-dir ramses_outputs/     --folder-name sedov_3d/     -n 1     --output-prefix sedov_test     --fields density,velocity,pressure     --dry-run
+```
+
+Key options:
+- `--base-dir` → Parent folder   
+- `--folder-name` → Folder containing RAMSES outputs 
+- `-n` → Snapshot number(s)  
+- `--output-prefix` → Prefix for generated `.vtkhdf` files  
+- `--fields` → Comma-separated list of fields (scalars/vectors)  
+- `--dry-run` → Run without writing files  
+
+---
+
+### Python API
+
+```python
+from ramses_to_vtkhdf.converter import RamsesToVtkHdfConverter
+
+converter = RamsesToVtkHdfConverter(
+    input_folder="ramses_outputs/sedov_3d",
+    output_prefix="sedov_test",
+    fields=["density", "velocity"],
+    dry_run=True
+)
+
+converter.process_output(1)
 ```
 
 ---
 
-### Exploration Modes
+### Example Script
 
-- **🔍 Field Inspection Mode**: List available fields in a snapshot:
+An example is provided in `examples/example_usage.py`:
 
 ```bash
-python3 ramses_to_vtkhdf.py --base-dir ./simulations --folder-name output_dir -n 5 --list-fields
+python -m examples.example_usage   
 ```
 
-- **👀 Preview Mode (Dry-Run)**: Show counts and plan without writing files:
-
-```bash
-python3 ramses_to_vtkhdf.py --base-dir ./simulations --folder-name output_dir -n 5 --level-start 1 --dry-run --verbose
-```
-
----
-
-## 📋 CLI Arguments Overview
-
-| Argument | Type | Required | Default | Notes |
-|----------|------|----------|---------|-------|
-| `--base-dir` | str | Yes | - | Base directory containing simulation folders |
-| `--folder-name` | str | Yes | - | Folder inside base-dir with outputs |
-| `-n / --numbers` | list[int] | Yes | - | Snapshot numbers like `1`, `1,3,5` or `2-7` |
-| `-o / --output-prefix` | str | No | `overlapping_amr` | Prefix for output files |
-| `--level-start` | int | No | None | Minimum AMR level (inclusive) |
-| `--level-end` | int | No | None | Maximum AMR level (inclusive) |
-| `--x-range` | min:max | No | None | Normalized X-axis range [0,1] |
-| `--y-range` | min:max | No | None | Normalized Y-axis range [0,1] |
-| `--z-range` | min:max | No | None | Normalized Z-axis range [0,1] |
-| `--fields` | list[str] | No | Defaults | Comma-separated field names to include |
-| `--list-fields` | flag | No | False | List fields and exit |
-| `--dry-run` | flag | No | False | Preview plan without writing files |
-| `--verbose` | flag | No | False | Enable detailed logging |
-
-> ⚠️ **Note:** Normalized ranges are relative to the simulation box. `0.0:0.5` corresponds to the first half of the domain.  
+This script:
+1. Lists available fields in snapshots  
+2. Prints dataset info  
+3. Performs a dry-run conversion  
+4. Displays scalar/vector fields to be written  
 
 ---
 
-## 🛠️ Conversion Pipeline Overview 
-
-1. **Load Data**: Uses `osyris.RamsesDataset` to read snapshots.  
-2. **Determine AMR Levels**: Detects all levels, applies `--level-start`/`--level-end` filters.  
-3. **Spatial Filtering**: Converts normalized ranges to physical coordinates.  
-4. **Field Extraction**: Separates scalar fields (density, pressure, etc.) and vector fields (velocity, magnetic_field).  
-5. **Mask & Prepare Data**: Apply filtering mask; compute cell corner coordinates.  
-6. **HDF5 Writing**:  
-   - Writes each AMR level as a group.  
-   - Stores `CellData` with scalars and vectors.  
-   - Includes placeholder `PointData` and `FieldData` groups for VTK compatibility.  
-   - Embeds metadata: command, timestamp, version.  
-
-> ⚠️ **Important:** AMRBox stores degenerate per-cell blocks. VTK expects this format for OverlappingAMR. Do **not** collapse boxes unless familiar with VTK’s data structure.  
-
----
-
-## 📂 Output File Structure
+## Output File Structure
 
 ```lua
 <output-prefix>_00001.vtkhdf
 <output-prefix>_00002.vtkhdf
 ...
+
+---
+
+## Tests
+
+Run the test suite with:
+
+```bash
+pytest tests/
 ```
-- Each file contains levels, each with:
-    - AMRBox → cell index ranges
-    - CellData → scalars & vectors
-    - PointData & FieldData → placeholders for VTK readers
-- Metadata embedded in root group: command, timestamp, version
+
+---
+
+## Repository Structure
+
+```
+Ramses2VTKHDF/
+├── ramses_to_vtkhdf/       # Core Python package
+│   ├── __init__.py
+│   ├── cli.py
+│   ├── converter.py
+│   └── parallel.py
+│
+├── tests/                  # Unit tests
+│   ├── __init__.py
+    ├── test_cli.py
+│   ├── test_converter.py
+│   ├── test_import.py
+│   ├── test_parallel.py
+│   └── test_parser.py
+│
+├── examples/               # Example usage scripts
+│   └── example_usage.py
+│
+├── ramses_outputs/  # Sample real RAMSES outputs
+│   └── sedov_3d/
+│       ├── output_00001/
+│       └── output_00002/
+│
+├── LICENSE
+├── README.md
+├── requirements.txt
+└── .gitignore
+```
+
+---
 
 
-## 🗓️ Notes & Best Practices 
 
-- Default fields if `--fields` is not specified: `density`, `pressure`, `velocity`.  
-- Use `--dry-run` to confirm filter settings and snapshot selection before committing to disk.  
+## Notes & Best Practices 
+
+- Default fields if `--fields` is not specified: `density`, `pressure`, `velocity`.    
 - Logging: Verbose mode (`--verbose`) gives step-by-step information including number of cells retained per level.  
 - Parallel execution automatically uses available CPU cores; falls back to serial if needed.  
 - If no cells survive filtering or fields are missing, the output file is skipped, with warnings logged.  
 
 ---
 
-## 📝 License & Acknowledgements 
+
+## License
+
+This project is licensed under the terms of the **MIT License**.  
+See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Authors
+
+- Hemangi Varkal (https://github.com/HemangiVarkal)
+
+---
+
+## Acknowledgements 
 
 - Script developed at **Space Applications Centre, ISRO, Ahmedabad, Gujarat, India.**.  
-- Proper citation recommended when used in publications.  
 - Adapted to VTKHDF OverlappingAMR following ParaView conventions.
 
+---
+
+## Citation
+
+If you use **Ramses2VTKHDF** in your work, please cite it as:
+
+> Varkal, H. (2025). *Ramses2VTKHDF: A Python tool for converting RAMSES outputs to VTKHDF*.  
+> GitHub repository: https://github.com/HemangiVarkal/Ramses2VTKHDF
+
+---
