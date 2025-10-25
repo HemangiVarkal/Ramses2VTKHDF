@@ -74,12 +74,12 @@ Overall, Ramses2VTKHDF provides a robust and reproducible solution for astrophys
 <table style="border-collapse: collapse; margin: auto;">
   <tr>
     <td style="padding: 10px; text-align: center;">
-      <img src="images/sedov_test_00001.png" alt="Sedov 3D output 00001" width="300" />
+      <img src="images/sedov_test_00001.png" alt="Sedov 3D output 00001" style ="display: block; margin-left: auto; margin-right: auto; width: 50%;"/>
       <br/>
       <b>Figure X:</b> Volume rendering of Sedov 3D output at timestep 00001.
     </td>
     <td style="padding: 10px; text-align: center;">
-      <img src="images/sedov_test_00002.png" alt="Sedov 3D output 00002" width="300" />
+      <img src="images/sedov_test_00002.png" alt="Sedov 3D output 00002" style ="display: block; margin-left: auto; margin-right: auto; width: 50%;"/>
       <br/>
       <b>Figure Y:</b> Volume rendering of Sedov 3D output at timestep 00002.
     </td>
