@@ -70,18 +70,18 @@ Notably, memory usage becomes a primary consideration during visualization in Pa
 
 Overall, Ramses2VTKHDF provides a robust and reproducible solution for astrophysical simulation post-processing, balancing accuracy with practical performance.
 
-<table border="0">
-  <tr>
-    <td>
-      <img src="images/sedov_test_00001.png" alt="Sedov 3D output 00001" width="300" align="center"/>
-      <p><b>Figure X:</b> Volume rendering of Sedov 3D output at timestep 00001.</p>
-    </td>
-    <td>
-      <img src="images/sedov_test_00002.png" alt="Sedov 3D output 00002" width="300" align="center"/>
-      <p><b>Figure Y:</b> Volume rendering of Sedov 3D output at timestep 00002.</p>
-    </td>
-  </tr>
-</table>
+<div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+  <figure style="text-align: center;">
+    <img src="images/sedov_test_00001.png" alt="Sedov 3D output 00001" width="300">
+    <figcaption><b>Figure X:</b> Volume rendering of Sedov 3D output at timestep 00001.</figcaption>
+  </figure>
+  
+  <figure style="text-align: center;">
+    <img src="images/sedov_test_00002.png" alt="Sedov 3D output 00002" width="300">
+    <figcaption><b>Figure Y:</b> Volume rendering of Sedov 3D output at timestep 00002.</figcaption>
+  </figure>
+</div>
+
 
 
 ## Acknowledgements
