@@ -139,6 +139,10 @@ Ramses2VTKHDF/
 │
 ├── examples/               # Example usage scripts
 │   └── example_usage.py
+|
+├── papers/               # JOSS submission papers
+│   ├── paper.md
+│   └── paper.bib
 │
 ├── ramses_outputs/  # Sample real RAMSES outputs
 │   └── sedov_3d/
