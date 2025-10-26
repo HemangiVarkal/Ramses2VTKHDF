@@ -5,7 +5,7 @@
 RAMSES → VTKHDF (Overlapping AMR) Converter
 ===========================================
 
-Author: Hemangi Varkal
+Author: Hemangi C. Varkal
 
 Affiliation: Space Applications Centre, ISRO, Ahmedabad, Gujarat, India.
 

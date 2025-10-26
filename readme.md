@@ -178,7 +178,8 @@ See the [LICENSE](LICENSE) file for details.
 
 ## Authors
 
-- Hemangi Varkal (https://github.com/HemangiVarkal)
+- Sri. Shubhankar Ravindra Gharote
+- Hemangi C. Varkal (https://github.com/HemangiVarkal)
 
 ---
 
