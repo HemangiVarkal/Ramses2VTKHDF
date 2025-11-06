@@ -178,15 +178,20 @@ See the [LICENSE](LICENSE) file for details.
 
 ## Authors
 
-- Sri. Shubhankar Ravindra Gharote
-- Hemangi C. Varkal (https://github.com/HemangiVarkal)
+- **Dr. Munn Vinayak Shukla** — Head, SSD/SESG/EPSA, Space Applications Centre (SAC), ISRO  
+- **Shubhankar R. Gharote** — Scientist, SSD/SESG/EPSA, Space Applications Centre (SAC), ISRO  
+- **[Hemangi C. Varkal](https://github.com/HemangiVarkal)** — Developer 
+
 
 ---
 
 ## Acknowledgements 
+- This work was carried out at the **Space Applications Centre (SAC), Indian Space Research Organisation (ISRO), Ahmedabad, India**.  
+- The author expresses sincere appreciation to **Dr. Mehul R. Pandya (GD, SESG/EPSA)** and **Dr. Rashmi Sharma (DD, EPSA)** for their continuous encouragement and institutional support.  
+- Special thanks are due to **Dr. Munn Vinayak Shukla (Head, SSD/SESG/EPSA)** and **Shubhankar R. Gharote(Scientist, SSD/SESG/EPSA)** for their invaluable guidance, technical insights, and collaboration throughout the development of this work.  
+- Computations were performed using the **SAGAR High Performance Computing (HPC) Facility** of SAC.
+- Implementation follows **ParaView VTKHDF OverlappingAMR** conventions.
 
-- Script developed at **Space Applications Centre, ISRO, Ahmedabad, Gujarat, India.**.  
-- Adapted to VTKHDF OverlappingAMR following ParaView conventions.
 
 ---
 

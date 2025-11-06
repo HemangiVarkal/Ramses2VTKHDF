@@ -5,10 +5,13 @@ tags:
   - VTKHDF
   - visualization
 authors:
+  - name: Dr. Munn Vinayak Shukla
+    affiliation: "1"
+  - name: Shubhankar R. Gharote
+    affiliation: "1"
   - name: Hemangi C. Varkal
     affiliation: "1,2"
-  - name: Shubhankar Ravindra Gharote
-    affiliation: "1"
+  
 affiliations:
   - name: Space Applications Centre, Indian Space Research Organisation (ISRO), Ahmedabad, Gujarat, India
     index: 1
@@ -77,9 +80,9 @@ Overall, `Ramses2VTKHDF` provides a robust and reproducible solution for astroph
 
 ## Acknowledgements
 
-The author thanks Sri. Shubhankar Ravindra Gharote for his invaluable mentorship and guidance throughout this project. His support and insights were critical to the successful development and completion of this work.
+The authors express their gratitude to Dr. Mehul R. Pandya (GD, SESG/EPSA) and Dr. Rashmi Sharma (DD, EPSA) for their encouragement and support during the course of this work.
 
-The author also acknowledges the facilities and support provided by the Space Applications Centre, Indian Space Research Organisation (ISRO), Ahmedabad.
+The authors also acknowledge the facilities and resources provided by the Space Applications Centre (SAC), Indian Space Research Organisation (ISRO), Ahmedabad. The computations required for this work were performed using the SAGAR High Performance Computing (HPC) Facility of SAC.
 
 
 ## References
