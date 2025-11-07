@@ -59,6 +59,34 @@ The conversion process involves the following key steps:
 Users interact with `Ramses2VTKHDF` via a command-line interface `CLI` or `Python API`, with flexible options for input directories, field selection, output file prefixes, and a dry-run mode for previewing conversions. The package also includes an automated test suite that ensures reliability and reproducibility of the conversion process.
 
 
+## Syntax Example
+
+Ramses2VTKHDF converts RAMSES simulation outputs to VTKHDF format using either a command-line interface (CLI) or a Python API.
+
+### Command-Line Interface
+
+Convert the first snapshot of the `sedov_3d` dataset with key scalar and vector fields:
+    python -m ramses_to_vtkhdf.cli --base-dir ramses_outputs/
+    --folder-name sedov_3d/ -n 1
+    --output-prefix sedov_test
+    --fields density,velocity,pressure
+Add `--dry-run` to preview the conversion without writing output files.
+
+### Python API
+
+Programmatically perform the same conversion:
+    from ramses_to_vtkhdf.converter import RamsesToVtkHdfConverter
+    converter = RamsesToVtkHdfConverter(
+    input_folder="ramses_outputs/sedov_3d",
+    output_prefix="sedov_test",
+    fields=["density","velocity", "pressure"],
+    dry_run=False
+    )
+    converter.process_output(1)
+
+For full usage details, kindly refer the [GitHub repository](https://github.com/HemangiVarkal/Ramses2VTKHDF).
+
+
 ## Results and Performance
 
 `Ramses2VTKHDF`'s performance was assessed using two `RAMSES` datasets: the `Sedov 3D` blast wave and a complex `filamentary structure` dataset.
