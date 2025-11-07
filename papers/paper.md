@@ -66,15 +66,18 @@ Ramses2VTKHDF converts RAMSES simulation outputs to VTKHDF format using either a
 ### Command-Line Interface
 
 Convert the first snapshot of the `sedov_3d` dataset with key scalar and vector fields:
+
     python -m ramses_to_vtkhdf.cli --base-dir ramses_outputs/
     --folder-name sedov_3d/ -n 1
     --output-prefix sedov_test
     --fields density,velocity,pressure
+
 Add `--dry-run` to preview the conversion without writing output files.
 
 ### Python API
 
 Programmatically perform the same conversion:
+
     from ramses_to_vtkhdf.converter import RamsesToVtkHdfConverter
     converter = RamsesToVtkHdfConverter(
     input_folder="ramses_outputs/sedov_3d",
