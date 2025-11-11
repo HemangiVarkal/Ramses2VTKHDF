@@ -1,14 +1,12 @@
-
 """
-
-Parallel conversion tests for Ramses2VTKHDF.
+Parallel conversion tests for Chhavi.
 
 Uses real RAMSES outputs and verifies dry-run mode for single and multiple snapshots.
 
 """
 
 from pathlib import Path
-from ramses_to_vtkhdf.parallel import run_parallel_conversion
+from chhavi.parallel import run_parallel_conversion
 
 # ──────────────────────────────────────────────────────────────
 # Configuration
@@ -23,9 +21,9 @@ SNAPSHOT_FOLDERS = ["output_00001", "output_00002"]
 # ──────────────────────────────────────────────────────────────
 
 def test_parallel_dry_run_single():
-    
+
     """Run parallel conversion in dry-run mode for a single real snapshot."""
-    
+
     snapshot = SNAPSHOT_FOLDERS[0]
     output_num = int(snapshot.split("_")[-1])
     input_folder = RAMSES_OUTPUT_ROOT / snapshot
@@ -41,9 +39,9 @@ def test_parallel_dry_run_single():
 
 
 def test_parallel_dry_run_multiple():
-    
+
     """Run parallel conversion in dry-run mode for multiple real snapshots."""
-    
+
     output_numbers = [int(s.split("_")[-1]) for s in SNAPSHOT_FOLDERS]
     input_folder = RAMSES_OUTPUT_ROOT
 

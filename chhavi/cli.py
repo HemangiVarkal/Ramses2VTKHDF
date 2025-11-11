@@ -8,7 +8,7 @@ CLI QUICK START (copy–paste, then tweak)
 ──────────────────────────────────────────────────────────────────────────────
 Example run (filters a subvolume, includes extra fields):
 
-    python3 ramses_to_vtkhdf.py \
+    python3 chhavi.py \
         --base-dir ./simulations \
         --folder-name output_dir \
         --numbers 1,3,5-7 \
@@ -21,11 +21,11 @@ Example run (filters a subvolume, includes extra fields):
 Exploration mode :
 
     # Lists fields Osyris sees in the mesh (no conversion happens)
-    python3 ramses_to_vtkhdf.py --base-dir ./simulations --folder-name output_dir \
+    python3 chhavi.py --base-dir ./simulations --folder-name output_dir \
         -n 5 --list-fields
 
     # Dry-run: show counts after filters, but don’t write .vtkhdf
-    python3 ramses_to_vtkhdf.py --base-dir ./simulations --folder-name output_dir \
+    python3 chhavi.py --base-dir ./simulations --folder-name output_dir \
         -n 5 --level-start 1 --dry-run --verbose
 
 Required args:
@@ -53,10 +53,6 @@ Tip on “normalized ranges”:
 """
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Library imports
-# ─────────────────────────────────────────────────────────────────────────────
-
 import os
 import argparse
 import logging
@@ -64,18 +60,15 @@ import logging
 from .converter import parse_output_numbers, parse_norm_range, parse_fields_arg, list_fields_for_snapshot
 from .parallel import run_parallel_conversion, setup_logging
 
-logger = logging.getLogger("ramses2vtkhdf")
+logger = logging.getLogger("chhavi")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CLI
-# ─────────────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    
+
     """
     Parse CLI args and run the conversion pipeline.
     """
-    
+
     parser = argparse.ArgumentParser(description="VTKHDF AMR Generator from RAMSES Data (refactored)")
 
     # Required inputs
@@ -95,7 +88,7 @@ def main() -> None:
 
     # Field selection (replace per-field enable flags with a single argument)
     parser.add_argument("--fields", type=parse_fields_arg, default=None, help="Comma-separated list of fields to include (e.g. density,velocity,magnetic_field). If omitted, sensible defaults are used.")
-    
+
     parser.add_argument("--list-fields", action="store_true", help="List available fields in the first requested snapshot and exit.")
 
     # Utility flags
@@ -109,12 +102,11 @@ def main() -> None:
 
     # Build absolute input folder path and validate
     input_folder = os.path.join(os.path.abspath(args.base_dir), args.folder_name)
-    
+
     if not os.path.exists(input_folder):
         logger.error("Input folder not found: %s", input_folder)
         raise FileNotFoundError(f"Input folder not found: {input_folder}")
 
-    
     # Check level ranges
     def positive_int(val):
         try:
@@ -124,11 +116,10 @@ def main() -> None:
             return iv
         except ValueError:
             raise argparse.ArgumentTypeError(f"Invalid integer value: {val}")
-    
+
     if args.level_start is not None and args.level_end is not None:
         if args.level_end < args.level_start:
             parser.error(f"Invalid level range: end ({args.level_end}) < start ({args.level_start}).")
-
 
     # Normalize default ranges: None -> (None,None)
     def norm_default(r):
@@ -144,7 +135,7 @@ def main() -> None:
         first_num = args.numbers[0]
         logger.info("Listing fields for snapshot %s in folder '%s'...", first_num, input_folder)
         fields = list_fields_for_snapshot(input_folder, first_num)
-        
+
         if fields:
             print("Available fields (best-effort):")
             for f in fields:
@@ -172,10 +163,6 @@ def main() -> None:
         logger.exception("FATAL: Unexpected error: %s", e)
         raise
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Entry Point
-# ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     main()

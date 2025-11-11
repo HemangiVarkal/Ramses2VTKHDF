@@ -4,10 +4,10 @@
 """
 
 ─────────────────────────────────────────────────────────────
-Example Usage of Ramses2VTKHDF
+Example Usage of Chhavi
 ─────────────────────────────────────────────────────────────
 
-This script demonstrates how to use the `RamsesToVtkHdfConverter`
+This script demonstrates how to use the `ChhaviConverter`
 class to explore and convert RAMSES simulation outputs into
 VTKHDF OverlappingAMR files.
 
@@ -22,22 +22,18 @@ Features demonstrated:
 
 import os
 from typing import List
-from ramses_to_vtkhdf.converter import RamsesToVtkHdfConverter, list_fields_for_snapshot
+from ramses_to_vtkhdf.converter import ChhaviConverter, list_fields_for_snapshot
 
 # ──────────────────────────────────────────────────────────────
 # Configuration
 # ──────────────────────────────────────────────────────────────
 
-# Parent folder where all RAMSES snapshot folders are stored
 RAMSES_OUTPUT_ROOT = "ramses_outputs/sedov_3d"
 
-# Snapshot folders (used for naming/output prefix)
 SNAPSHOT_FOLDERS = ["output_00001", "output_00002"]
 
-# Fields to preview
 FIELDS_TO_INSPECT = ["density", "velocity", "pressure"]
 
-# Dry-run prevents actual file writing; set to False to convert for real
 DRY_RUN = True
 
 
@@ -45,17 +41,9 @@ DRY_RUN = True
 # Helper Functions
 # ──────────────────────────────────────────────────────────────
 
-def print_snapshot_info(snapshot_num: int, snapshot_name: str, fields: List[str]):
-    
-    """
-    Print a summary of a snapshot for the user.
 
-    Args:
-        snapshot_num: Snapshot number (1, 2, ...)
-        snapshot_name: Folder name of the snapshot
-        fields: List of fields detected in this snapshot
-    """
-    
+def print_snapshot_info(snapshot_num: int, snapshot_name: str, fields: List[str]):
+
     print(f"\n🔹 Processing snapshot {snapshot_num} ({snapshot_name})...")
     if fields:
         print(f"Detected fields: {', '.join(fields)}")
@@ -64,16 +52,7 @@ def print_snapshot_info(snapshot_num: int, snapshot_name: str, fields: List[str]
 
 
 def print_physical_fields(fields: List[str]):
-    
-    """
-    Print which physical fields will be written, classifying them
-    as scalar or vector fields.
 
-    Args:
-        fields: List of requested fields
-    """
-    
-    # Example classification; adjust based on your simulation
     scalar_fields = [f for f in fields if f.lower() in {"density", "pressure", "grav_potential"}]
     vector_fields = [f for f in fields if f.lower() in {"velocity", "grav_acceleration", "magnetic_field"}]
 
@@ -91,18 +70,11 @@ def print_physical_fields(fields: List[str]):
 # ──────────────────────────────────────────────────────────────
 
 def main():
-    
-    """
-    Main function demonstrating usage of RamsesToVtkHdfConverter.
-    Lists available fields, performs a dry-run conversion, and shows
-    physical fields that will be written.
-    """
-    
-    print("=== Ramses2VTKHDF Example Usage ===")
+
+    print("=== Chhavi Example Usage ===")
     print("This example inspects snapshots and performs a dry-run conversion.\n")
 
     for idx, snapshot_name in enumerate(SNAPSHOT_FOLDERS, start=1):
-        # 1️⃣ List available fields in the snapshot
         try:
             available_fields = list_fields_for_snapshot(RAMSES_OUTPUT_ROOT, idx)
         except Exception as e:
@@ -111,18 +83,15 @@ def main():
 
         print_snapshot_info(idx, snapshot_name, available_fields)
 
-        # 2️⃣ Create converter object
-        converter = RamsesToVtkHdfConverter(
+        converter = ChhaviConverter(
             input_folder=RAMSES_OUTPUT_ROOT,
             output_prefix=f"example_{snapshot_name}",
             fields=FIELDS_TO_INSPECT,
             dry_run=DRY_RUN,
         )
 
-        # 3️⃣ Show which physical fields will be added
         print_physical_fields(converter.requested_fields)
 
-        # 4️⃣ Load and convert snapshot (dry-run)
         try:
             converter.process_output(idx)
             print(f"✅ Snapshot {idx} dry-run conversion completed successfully!")

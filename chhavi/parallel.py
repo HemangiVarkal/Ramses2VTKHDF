@@ -3,13 +3,9 @@
 
 """
 
-Parallel execution utilities for ramses_to_vtkhdf.
+Parallel execution utilities for chhavi.
 
 """
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Library imports
-# ─────────────────────────────────────────────────────────────────────────────
 
 from __future__ import annotations
 
@@ -22,14 +18,10 @@ import sys
 import time
 import concurrent.futures
 
-from .converter import RamsesToVtkHdfConverter, setup_logging
+from .converter import ChhaviConverter, setup_logging
 
-logger = logging.getLogger("ramses2vtkhdf")
+logger = logging.getLogger("chhavi")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Parallel driver
-# ─────────────────────────────────────────────────────────────────────────────
 
 def process_single_output(
     output_num: int,
@@ -44,16 +36,14 @@ def process_single_output(
     dry_run: bool,
     verbose: bool,
 ) -> None:
-    
     """
     Worker function executed in each process. It configures logging and runs conversion
     for a single snapshot number.
     """
-    
     setup_logging(verbose)
-   
+
     try:
-        conv = RamsesToVtkHdfConverter(
+        conv = ChhaviConverter(
             input_folder=input_folder,
             output_prefix=output_prefix,
             fields=fields,
@@ -84,13 +74,12 @@ def run_parallel_conversion(
     dry_run: bool = False,
     verbose: bool = False,
 ) -> None:
-    
     """
     High-level parallel runner that dispatches conversion of multiple outputs.
 
     If parallel execution fails, falls back to serial execution and continues on per-snapshot errors.
     """
-    
+
     nworkers = max(1, min(cpu_count(), len(output_numbers)))
     logger.info("Starting on %d worker(s) for outputs %s", nworkers, output_numbers)
     t0 = time.time()
@@ -117,7 +106,7 @@ def run_parallel_conversion(
     except Exception as e:
         logger.error("Parallel execution failed: %s", e)
         logger.info("Falling back to serial execution...")
-        
+
         for num in output_numbers:
             try:
                 worker(num)

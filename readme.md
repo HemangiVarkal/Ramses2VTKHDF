@@ -1,33 +1,30 @@
-# Ramses2VTKHDF: A Python tool for converting RAMSES outputs to VTKHDF
+# Chhavi: A Python tool for converting RAMSES outputs to VTKHDF
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python Version](https://img.shields.io/badge/python-3.9%2B-brightgreen)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)  
+[![Python Version](https://img.shields.io/badge/python-3.9%2B-brightgreen)]()  
 [![Build Status](https://img.shields.io/badge/tests-passing-brightgreen)]()
-
 
 ## Overview
 
-**Ramses2VTKHDF** is a Python package that converts **[RAMSES](https://ramses-organisation.readthedocs.io/en/latest/) simulation outputs** into
-**[VTKHDF](https://vtk.org/documentation/) OverlappingAMR** format.  
+**Chhavi** is a Python package that converts **[RAMSES](https://ramses-organisation.readthedocs.io/en/latest/)** simulation outputs into  
+**[VTKHDF](https://vtk.org/documentation/)** OverlappingAMR format.
 
-It provides both a **command-line interface (CLI)** and a **Python API**, making it
-easy to visualize an analyze in [ParaView](https://docs.paraview.org/en/latest/) and other compatible tools.
+It provides both a **command-line interface (CLI)** and a **Python API**, making it easy to visualize and analyze data in [ParaView](https://docs.paraview.org/en/latest/) and other compatible tools.
 
-The package also includes test coverage, example scripts, and clear documentation,
-ensuring it is reproducible and accessible for scientific use.
+The package also includes test coverage, example scripts, and clear documentation, ensuring it is reproducible and accessible for scientific use.
 
 ---
 
 ## Features
 
-- Convert RAMSES AMR outputs into VTKHDF OverlappingAMR files
-- Uses [Osyris](https://osyris.readthedocs.io/en/stable/) for data analysis and extraction
-- Support for both **scalar fields** (density, pressure, grav_potential) and
-  **vector fields** (velocity, magnetic_field, grav_acceleration)
-- Dry-run mode to preview what would be written without creating files
-- CLI and Python API for flexible use
-- Parallel conversion support for multiple outputs
-- Fully tested with `pytest`
+- Convert RAMSES AMR outputs into VTKHDF OverlappingAMR files  
+- Uses [Osyris](https://osyris.readthedocs.io/en/stable/) for data analysis and extraction  
+- Support for both **scalar fields** (density, pressure, grav_potential) and  
+  **vector fields** (velocity, magnetic_field, grav_acceleration)  
+- Dry-run mode to preview what would be written without creating files  
+- CLI and Python API for flexible use  
+- Parallel conversion support for multiple outputs  
+- Fully tested with `pytest`  
 
 ---
 
@@ -36,11 +33,10 @@ ensuring it is reproducible and accessible for scientific use.
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/HemangiVarkal/Ramses2VTKHDF.git
-cd Ramses2VTKHDF
+git clone https://github.com/HemangiVarkal/Chhavi.git
+cd Chhavi
 pip install -r requirements.txt
 ```
-
 ---
 
 ## Usage
@@ -50,15 +46,16 @@ pip install -r requirements.txt
 Example:
 
 ```bash
-python -m ramses_to_vtkhdf.cli  --base-dir ramses_outputs/    
-        --folder-name sedov_3d/  -n 1   /
-        --output-prefix sedov_test     /
-        --fields density,velocity,pressure  --dry-run
+python -m chhavi.cli --base-dir ramses_outputs/ 
+       --folder-name sedov_3d/ -n 1 
+       --output-prefix sedov_test 
+       --fields density,velocity,pressure 
+       --dry-run
 ```
 
-Key options:
-- `--base-dir` → Parent folder   
-- `--folder-name` → Folder containing RAMSES outputs 
+Key options:  
+- `--base-dir` → Parent folder  
+- `--folder-name` → Folder containing RAMSES outputs  
 - `-n` → Snapshot number(s)  
 - `--output-prefix` → Prefix for generated `.vtkhdf` files  
 - `--fields` → Comma-separated list of fields (scalars/vectors)  
@@ -69,13 +66,13 @@ Key options:
 ### Python API
 
 ```python
-from ramses_to_vtkhdf.converter import RamsesToVtkHdfConverter
+from chhavi.converter import ChhaviConverter
 
-converter = RamsesToVtkHdfConverter(
-    input_folder="ramses_outputs/sedov_3d",
-    output_prefix="sedov_test",
-    fields=["density", "velocity"],
-    dry_run=True
+converter = ChhaviConverter(
+input_folder="ramses_outputs/sedov_3d",
+output_prefix="sedov_test",
+fields=["density", "velocity"],
+dry_run=True
 )
 
 converter.process_output(1)
@@ -88,10 +85,10 @@ converter.process_output(1)
 An example is provided in `examples/example_usage.py`:
 
 ```bash
-python -m examples.example_usage   
+python -m examples.example_usage
 ```
 
-This script:
+This script:  
 1. Lists available fields in snapshots  
 2. Prints dataset info  
 3. Performs a dry-run conversion  
@@ -122,32 +119,32 @@ pytest tests/
 ## Repository Structure
 
 ```
-Ramses2VTKHDF/
-├── ramses_to_vtkhdf/       # Core Python package
-│   ├── __init__.py
-│   ├── cli.py
-│   ├── converter.py
-│   └── parallel.py
+Chhavi/
+├── chhavi/ # Core Python package
+│ ├── init.py
+│ ├── cli.py
+│ ├── converter.py
+│ └── parallel.py
 │
-├── tests/                  # Unit tests
-│   ├── __init__.py
-    ├── test_cli.py
-│   ├── test_converter.py
-│   ├── test_import.py
-│   ├── test_parallel.py
-│   └── test_parser.py
+├── tests/ # Unit tests
+│ ├── init.py
+│ ├── test_cli.py
+│ ├── test_converter.py
+│ ├── test_import.py
+│ ├── test_parallel.py
+│ └── test_parser.py
 │
-├── examples/               # Example usage scripts
-│   └── example_usage.py
-|
-├── papers/               # JOSS submission papers
-│   ├── paper.md
-│   └── paper.bib
+├── examples/ # Example usage scripts
+│ └── example_usage.py
 │
-├── ramses_outputs/  # Sample real RAMSES outputs
-│   └── sedov_3d/
-│       ├── output_00001/
-│       └── output_00002/
+├── papers/ # JOSS submission papers
+│ ├── paper.md
+│ └── paper.bib
+│
+├── ramses_outputs/ # Sample real RAMSES outputs
+│ └── sedov_3d/
+│ ├── output_00001/
+│ └── output_00002/
 │
 ├── LICENSE
 ├── README.md
@@ -157,17 +154,14 @@ Ramses2VTKHDF/
 
 ---
 
-
-
 ## Notes & Best Practices 
 
-- Default fields if `--fields` is not specified: `density`, `pressure`, `velocity`.    
-- Logging: Verbose mode (`--verbose`) gives step-by-step information including number of cells retained per level.  
-- Parallel execution automatically uses available CPU cores; falls back to serial if needed.  
-- If no cells survive filtering or fields are missing, the output file is skipped, with warnings logged.  
+- Default fields if `--fields` is not specified: `density`, `pressure`, `velocity`  
+- Logging: Verbose mode (`--verbose`) gives step-by-step information including number of cells retained per level  
+- Parallel execution automatically uses available CPU cores; falls back to serial if needed  
+- If no cells survive filtering or fields are missing, the output file is skipped, with warnings logged  
 
 ---
-
 
 ## License
 
@@ -180,26 +174,23 @@ See the [LICENSE](LICENSE) file for details.
 
 - **Dr. Munn Vinayak Shukla** — Head, SSD/SESG/EPSA, Space Applications Centre (SAC), ISRO  
 - **Shubhankar R. Gharote** — Scientist, SSD/SESG/EPSA, Space Applications Centre (SAC), ISRO  
-- **[Hemangi C. Varkal](https://github.com/HemangiVarkal)** — Developer 
-
+- **[Hemangi C. Varkal](https://github.com/HemangiVarkal)** — Developer  
 
 ---
 
-## Acknowledgements 
+## Acknowledgements
+
 - This work was carried out at the **Space Applications Centre (SAC), Indian Space Research Organisation (ISRO), Ahmedabad, India**.  
 - The author expresses sincere appreciation to **Dr. Mehul R. Pandya (GD, SESG/EPSA)** and **Dr. Rashmi Sharma (DD, EPSA)** for their continuous encouragement and institutional support.  
-- Special thanks are due to **Dr. Munn Vinayak Shukla (Head, SSD/SESG/EPSA)** and **Shubhankar R. Gharote(Scientist, SSD/SESG/EPSA)** for their invaluable guidance, technical insights, and collaboration throughout the development of this work.  
-- Computations were performed using the **SAGAR High Performance Computing (HPC) Facility** of SAC.
-- Implementation follows **ParaView VTKHDF OverlappingAMR** conventions.
-
+- Special thanks are due to **Dr. Munn Vinayak Shukla (Head, SSD/SESG/EPSA)** and **Shubhankar R. Gharote (Scientist, SSD/SESG/EPSA)** for their invaluable guidance, technical insights, and collaboration throughout the development of this work.  
+- Computations were performed using the **SAGAR High Performance Computing (HPC) Facility** of SAC.  
+- Implementation follows **ParaView VTKHDF OverlappingAMR** conventions.  
 
 ---
 
 ## Citation
 
-If you use **Ramses2VTKHDF** in your work, please cite it as:
+If you use **Chhavi** in your work, please cite it as:
 
-> Varkal, H. (2025). *Ramses2VTKHDF: A Python tool for converting RAMSES outputs to VTKHDF*.  
-> GitHub repository: https://github.com/HemangiVarkal/Ramses2VTKHDF
-
----
+> Varkal, H. (2025). *Chhavi: A Python tool for converting RAMSES outputs to VTKHDF*.  
+> GitHub repository: [https://github.com/HemangiVarkal/Chhavi](https://github.com/HemangiVarkal/Chhavi)

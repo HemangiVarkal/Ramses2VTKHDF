@@ -1,14 +1,12 @@
-
 """
-
-Unit tests for Ramses2VTKHDF parsing helper functions
+Unit tests for Chhavi parsing helper functions
 
 Validates CLI argument parsing utilities: output numbers, normalized ranges, and fields.
 
 """
 
 import pytest
-from ramses_to_vtkhdf.converter import parse_output_numbers, parse_norm_range, parse_fields_arg
+from chhavi.converter import parse_output_numbers, parse_norm_range, parse_fields_arg
 
 
 # ──────────────────────────────────────────────────────────────
@@ -25,7 +23,7 @@ def test_parse_output_numbers_range():
 
 def test_parse_output_numbers_list():
     assert parse_output_numbers("1,3,7") == [1, 3, 7]
-    
+
 
 # ──────────────────────────────────────────────────────────────
 # Normalized range parsing
