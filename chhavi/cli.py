@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-
 ──────────────────────────────────────────────────────────────────────────────
 CLI QUICK START (copy–paste, then tweak)
 ──────────────────────────────────────────────────────────────────────────────
 Example run (filters a subvolume, includes extra fields):
 
-    python3 chhavi.py \
+    python3 cli.py \
         --base-dir ./simulations \
         --folder-name output_dir \
         --numbers 1,3,5-7 \
@@ -21,11 +20,11 @@ Example run (filters a subvolume, includes extra fields):
 Exploration mode :
 
     # Lists fields Osyris sees in the mesh (no conversion happens)
-    python3 chhavi.py --base-dir ./simulations --folder-name output_dir \
+    python3 cli.py --base-dir ./simulations --folder-name output_dir \
         -n 5 --list-fields
 
     # Dry-run: show counts after filters, but don’t write .vtkhdf
-    python3 chhavi.py --base-dir ./simulations --folder-name output_dir \
+    python3 cli.py --base-dir ./simulations --folder-name output_dir \
         -n 5 --level-start 1 --dry-run --verbose
 
 Required args:
@@ -49,7 +48,7 @@ Tip on “normalized ranges”:
     RAMSES coordinates are in code/physical units. We divide by the simulation
     box length (from metadata) so [0,1] always spans the full domain, regardless
     of units.
-
+    
 """
 
 
@@ -66,7 +65,9 @@ logger = logging.getLogger("chhavi")
 def main() -> None:
 
     """
+    
     Parse CLI args and run the conversion pipeline.
+    
     """
 
     parser = argparse.ArgumentParser(description="VTKHDF AMR Generator from RAMSES Data (refactored)")
@@ -107,6 +108,7 @@ def main() -> None:
         logger.error("Input folder not found: %s", input_folder)
         raise FileNotFoundError(f"Input folder not found: {input_folder}")
 
+    
     # Check level ranges
     def positive_int(val):
         try:
@@ -121,6 +123,7 @@ def main() -> None:
         if args.level_end < args.level_start:
             parser.error(f"Invalid level range: end ({args.level_end}) < start ({args.level_start}).")
 
+    
     # Normalize default ranges: None -> (None,None)
     def norm_default(r):
         return (None, None) if r is None else r
@@ -129,6 +132,7 @@ def main() -> None:
     y_range = norm_default(args.y_range)
     z_range = norm_default(args.z_range)
 
+    
     # If user requested to list fields, inspect the first snapshot in args.numbers
     if args.list_fields:
         # pick first number (safe because parser ensured args.numbers exists)

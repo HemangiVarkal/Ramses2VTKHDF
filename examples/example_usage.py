@@ -22,7 +22,7 @@ Features demonstrated:
 
 import os
 from typing import List
-from ramses_to_vtkhdf.converter import ChhaviConverter, list_fields_for_snapshot
+from chhavi.converter import ChhaviConverter, list_fields_for_snapshot
 
 # ──────────────────────────────────────────────────────────────
 # Configuration

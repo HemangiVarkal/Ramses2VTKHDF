@@ -4,6 +4,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-brightgreen)]()  
 [![Build Status](https://img.shields.io/badge/tests-passing-brightgreen)]()
 
+
 ## Overview
 
 **Chhavi** is a Python package that converts **[RAMSES](https://ramses-organisation.readthedocs.io/en/latest/)** simulation outputs into  
@@ -37,6 +38,7 @@ git clone https://github.com/HemangiVarkal/Chhavi.git
 cd Chhavi
 pip install -r requirements.txt
 ```
+
 ---
 
 ## Usage
@@ -120,28 +122,28 @@ pytest tests/
 
 ```
 Chhavi/
-├── chhavi/ # Core Python package
-│ ├── init.py
+├── chhavi/          # Core Python package
+│ ├── __init__.py
 │ ├── cli.py
 │ ├── converter.py
 │ └── parallel.py
 │
 ├── tests/ # Unit tests
-│ ├── init.py
+│ ├── __init__.py
 │ ├── test_cli.py
 │ ├── test_converter.py
 │ ├── test_import.py
 │ ├── test_parallel.py
 │ └── test_parser.py
 │
-├── examples/ # Example usage scripts
+├── examples/         # Example usage scripts
 │ └── example_usage.py
 │
-├── papers/ # JOSS submission papers
+├── papers/           # JOSS submission papers
 │ ├── paper.md
 │ └── paper.bib
 │
-├── ramses_outputs/ # Sample real RAMSES outputs
+├── ramses_outputs/   # Sample real RAMSES outputs
 │ └── sedov_3d/
 │ ├── output_00001/
 │ └── output_00002/
