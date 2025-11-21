@@ -24,6 +24,7 @@ IT SUPPORTS:
  - Per-snapshot parallel processing (ProcessPoolExecutor)
  - Field discovery (--list-fields) and explicit field selection (--fields)
  - Dry-run mode (--dry-run) to print the plan without writing files
+ - Number of cores (--nproc) for number of cores to be used for parallel processing (default: 1)
  - Embedding run metadata (CLI command, timestamp, code version) in each output file
 
 """
@@ -35,7 +36,9 @@ import logging
 import shlex
 import sys
 import time
+import argparse
 from typing import Dict, Iterable, List, Optional, Tuple
+import os
 
 import numpy as np
 import h5py as h5
@@ -165,6 +168,16 @@ class ChhaviConverter:
 
     This class is intentionally small and unit-test friendly: separate methods perform
     small responsibilities (boxlength inference, mask building, vector extraction, HDF5 writes).
+
+    Args:
+        input_folder: Directory with RAMSES outputs.
+        output_prefix: Prefix for output files.
+        fields: List of fields to include (None for defaults).
+        level_start: Minimum AMR level.
+        level_end: Maximum AMR level.
+        x/y/z_range_norm: Normalized spatial ranges.
+        dry_run: If True, no files written.
+        output_directory: Optional directory for output files; defaults to input_folder.
     """
 
     def __init__(
@@ -178,6 +191,7 @@ class ChhaviConverter:
         y_range_norm: Tuple[Optional[float], Optional[float]] = (None, None),
         z_range_norm: Tuple[Optional[float], Optional[float]] = (None, None),
         dry_run: bool = False,
+        output_directory: Optional[str] = None,
     ):
         # Inputs & configuration
         self.input_folder = input_folder
@@ -197,6 +211,9 @@ class ChhaviConverter:
 
         self.dry_run = dry_run
 
+        # Directory to save output files
+        self.output_directory = output_directory or input_folder
+
         # dtype aliases for HDF5 datasets
         self.float_dtype = "f"  # float32
         self.int_dtype = "i8"
@@ -204,20 +221,30 @@ class ChhaviConverter:
         # physical bounds converted after boxlength known (dict with 'x','y','z' -> (lo,hi) or None)
         self._phys_bounds: Optional[Dict[str, Tuple[Optional[float], Optional[float]]]] = None
 
+    
     def _infer_boxlength_from_data(self, data) -> Optional[float]:
         """
         Try to infer simulation box length from osyris dataset `data`.
-
+    
+        This version multiplies 'boxlen' by 'unit_l' from the dataset's metadata to
+        ensure spatial filtering units match the physical coordinates.
+    
         Returns:
             box length as float, or None if not found.
         """
         try:
-            if hasattr(data, "meta") and isinstance(data.meta, dict) and "boxlen" in data.meta:
-                return float(data.meta["boxlen"])
+            if (
+                hasattr(data, "meta")
+                and isinstance(data.meta, dict)
+                and "boxlen" in data.meta
+                and "unit_l" in data.meta
+            ):
+                return float(data.meta["boxlen"] * data.meta["unit_l"])
         except Exception:
-            logger.debug("Error while reading data.meta for boxlen")
+            logger.debug("Error while reading data.meta for boxlen or unit_l")
             pass
         return None
+
 
     def _compute_physical_bounds(self, data) -> None:
         """
@@ -474,7 +501,10 @@ class ChhaviConverter:
             return
 
         t0 = time.time()
-        output_filename = f"{self.output_prefix}_{output_num:05d}.vtkhdf"
+        output_filename = os.path.join(
+            self.output_directory,
+            f"{self.output_prefix}_{output_num:05d}.vtkhdf"
+        )
 
         level_data = []
 

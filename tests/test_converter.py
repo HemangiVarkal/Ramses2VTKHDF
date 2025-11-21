@@ -32,9 +32,11 @@ def test_converter_init():
         output_prefix="test_amr",
         fields=["density"],
         dry_run=True,
+        output_directory=None,  # Test default behavior
     )
     assert conv.input_folder == RAMSES_OUTPUT_ROOT
     assert conv.output_prefix == "test_amr"
+    assert conv.output_directory == RAMSES_OUTPUT_ROOT  # defaults to input_folder
 
 
 def test_filter_levels():
@@ -76,6 +78,7 @@ def test_dry_run_real_snapshot():
         output_prefix=f"dryrun_{snapshot}",
         fields=["density", "velocity"],
         dry_run=True,
+        output_directory=None,  # Use default
     )
     try:
         output_num = int(snapshot.split("_")[-1])

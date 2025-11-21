@@ -15,7 +15,9 @@ Example run (filters a subvolume, includes extra fields):
         --level-start 2 --level-end 5 \
         --x-range 0.0:1.0 --y-range 0.0:1.0 --z-range 0.0:1.0 \
         --fields density,pressure \
-        --verbose
+        --verbose \
+        --nproc 4 \
+        --output-dir ./vtk_outputs
 
 Exploration mode :
 
@@ -43,58 +45,127 @@ Optional args:
     --verbose          step-by-step narration
     --list-fields      Only list available mesh fields and exit
     --dry-run          Run everything except the actual write step
-
+    --nproc            Number of CPU cores to use for parallel conversion (default: 1)
+    --output-dir       Directory to store .vtkhdf output files (default: input directory)
+──────────────────────────────────────────────────────────────────────────────
 Tip on “normalized ranges”:
     RAMSES coordinates are in code/physical units. We divide by the simulation
     box length (from metadata) so [0,1] always spans the full domain, regardless
     of units.
-    
+──────────────────────────────────────────────────────────────────────────────
 """
-
 
 import os
 import argparse
 import logging
 
-from .converter import parse_output_numbers, parse_norm_range, parse_fields_arg, list_fields_for_snapshot
+from .converter import (
+    parse_output_numbers,
+    parse_norm_range,
+    parse_fields_arg,
+    list_fields_for_snapshot,
+)
 from .parallel import run_parallel_conversion, setup_logging
 
 logger = logging.getLogger("chhavi")
 
 
 def main() -> None:
-
     """
-    
     Parse CLI args and run the conversion pipeline.
-    
     """
 
-    parser = argparse.ArgumentParser(description="VTKHDF AMR Generator from RAMSES Data (refactored)")
+    parser = argparse.ArgumentParser(
+        description="VTKHDF AMR Generator from RAMSES Data (refactored)"
+    )
 
     # Required inputs
-    parser.add_argument("--base-dir", type=str, required=True, help="Base directory containing simulation folders (REQUIRED)")
-    parser.add_argument("--folder-name", type=str, required=True, help="Folder inside base_dir to process (REQUIRED)")
-    parser.add_argument("-n", "--numbers", type=parse_output_numbers, required=True, help="Output numbers like '1', '1,3,5' or '2-7' (REQUIRED)")
+    parser.add_argument(
+        "--base-dir",
+        type=str,
+        required=True,
+        help="Base directory containing simulation folders (REQUIRED)",
+    )
+    parser.add_argument(
+        "--folder-name",
+        type=str,
+        required=True,
+        help="Folder inside base_dir to process (REQUIRED)",
+    )
+    parser.add_argument(
+        "-n",
+        "--numbers",
+        type=parse_output_numbers,
+        required=True,
+        help="Output numbers like '1', '1,3,5' or '2-7' (REQUIRED)",
+    )
 
     # Output and level selection
-    parser.add_argument("-o", "--output-prefix", dest="output_prefix", default="overlapping_amr", help="Output file prefix (default: overlapping_amr)")
-    parser.add_argument("--level-start", type=int, default=None, help="Minimum AMR level to include (inclusive). Optional.")
-    parser.add_argument("--level-end", type=int, default=None, help="Maximum AMR level to include (inclusive). Optional.")
+    parser.add_argument(
+        "-o",
+        "--output-prefix",
+        dest="output_prefix",
+        default="overlapping_amr",
+        help="Output file prefix (default: overlapping_amr)",
+    )
+    parser.add_argument(
+        "--level-start",
+        type=int,
+        default=None,
+        help="Minimum AMR level to include (inclusive). Optional.",
+    )
+    parser.add_argument(
+        "--level-end",
+        type=int,
+        default=None,
+        help="Maximum AMR level to include (inclusive). Optional.",
+    )
 
     # Normalized ranges (single arg per axis)
-    parser.add_argument("--x-range", type=parse_norm_range, default=None, help="Normalized x range 'min:max' (e.g., 0.2:0.8, :0.7, 0.1:, :).")
-    parser.add_argument("--y-range", type=parse_norm_range, default=None, help="Normalized y range 'min:max'.")
-    parser.add_argument("--z-range", type=parse_norm_range, default=None, help="Normalized z range 'min:max'.")
+    parser.add_argument(
+        "--x-range",
+        type=parse_norm_range,
+        default=None,
+        help="Normalized x range 'min:max' (e.g., 0.2:0.8, :0.7, 0.1:, :).",
+    )
+    parser.add_argument(
+        "--y-range", type=parse_norm_range, default=None, help="Normalized y range 'min:max'."
+    )
+    parser.add_argument(
+        "--z-range", type=parse_norm_range, default=None, help="Normalized z range 'min:max'."
+    )
 
     # Field selection (replace per-field enable flags with a single argument)
-    parser.add_argument("--fields", type=parse_fields_arg, default=None, help="Comma-separated list of fields to include (e.g. density,velocity,magnetic_field). If omitted, sensible defaults are used.")
+    parser.add_argument(
+        "--fields",
+        type=parse_fields_arg,
+        default=None,
+        help="Comma-separated list of fields to include (e.g. density,velocity,magnetic_field). If omitted, sensible defaults are used.",
+    )
 
-    parser.add_argument("--list-fields", action="store_true", help="List available fields in the first requested snapshot and exit.")
+    parser.add_argument(
+        "--list-fields",
+        action="store_true",
+        help="List available fields in the first requested snapshot and exit.",
+    )
 
     # Utility flags
-    parser.add_argument("--dry-run", action="store_true", help="Print plan without writing files.")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Print plan without writing files."
+    )
     parser.add_argument("--verbose", action="store_true", help="Verbose logging.")
+    parser.add_argument(
+        "--nproc",
+        type=int,
+        default=None,
+        help="Number of CPU cores to use for parallel conversion (default: 1)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Directory to store .vtkhdf output files (default: input directory)",
+    )
 
     args = parser.parse_args()
 
@@ -108,22 +179,26 @@ def main() -> None:
         logger.error("Input folder not found: %s", input_folder)
         raise FileNotFoundError(f"Input folder not found: {input_folder}")
 
-    
-    # Check level ranges
-    def positive_int(val):
-        try:
-            iv = int(val)
-            if iv < 0:
-                raise argparse.ArgumentTypeError(f"Invalid value: {val}. Must be non-negative.")
-            return iv
-        except ValueError:
-            raise argparse.ArgumentTypeError(f"Invalid integer value: {val}")
+    # Validate nproc argument (positive integer if provided)
+    if args.nproc is not None and args.nproc <= 0:
+        parser.error(f"Invalid --nproc value: {args.nproc}. Must be a positive integer.")
 
+    # Validate output directory existence or create it
+    output_dir = args.output_dir if args.output_dir is not None else input_folder
+    if not os.path.exists(output_dir):
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+            logger.info("Created output directory: %s", output_dir)
+        except Exception as e:
+            parser.error(f"Failed to create output directory '{output_dir}': {e}")
+
+    # Check level ranges
     if args.level_start is not None and args.level_end is not None:
         if args.level_end < args.level_start:
-            parser.error(f"Invalid level range: end ({args.level_end}) < start ({args.level_start}).")
+            parser.error(
+                f"Invalid level range: end ({args.level_end}) < start ({args.level_start})."
+            )
 
-    
     # Normalize default ranges: None -> (None,None)
     def norm_default(r):
         return (None, None) if r is None else r
@@ -132,10 +207,8 @@ def main() -> None:
     y_range = norm_default(args.y_range)
     z_range = norm_default(args.z_range)
 
-    
     # If user requested to list fields, inspect the first snapshot in args.numbers
     if args.list_fields:
-        # pick first number (safe because parser ensured args.numbers exists)
         first_num = args.numbers[0]
         logger.info("Listing fields for snapshot %s in folder '%s'...", first_num, input_folder)
         fields = list_fields_for_snapshot(input_folder, first_num)
@@ -162,6 +235,8 @@ def main() -> None:
             z_range_norm=z_range,
             dry_run=args.dry_run,
             verbose=args.verbose,
+            nproc=args.nproc,
+            output_directory=output_dir,
         )
     except Exception as e:
         logger.exception("FATAL: Unexpected error: %s", e)

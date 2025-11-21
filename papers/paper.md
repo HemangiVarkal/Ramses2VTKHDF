@@ -56,7 +56,7 @@ The conversion process involves the following key steps:
 
 5. **Visualization:** The generated `VTKHDF` file can be loaded directly into `ParaView`, where researchers can explore simulation data interactively, leveraging multi-resolution visualization to analyze cosmic phenomena.
 
-Users interact with `Chhavi` via a command-line interface `CLI` or `Python API`, with flexible options for input directories, field selection, output file prefixes, and a dry-run mode for previewing conversions. The package also includes an automated test suite that ensures reliability and reproducibility of the conversion process.
+Users interact with `Chhavi` via a command-line interface `CLI` or `Python API`, with flexible options for input directories, output directories, field selection, output file prefixes, number of CPU cores for parallel conversion and a dry-run mode for previewing conversions. The package also includes an automated test suite that ensures reliability and reproducibility of the conversion process.
 
 
 ## Syntax Example
@@ -71,6 +71,8 @@ Convert the first snapshot of the `sedov_3d` dataset with key scalar and vector 
     --folder-name sedov_3d/ -n 1
     --output-prefix sedov_test
     --fields density,velocity,pressure
+    --output-dir ./vtk_outputs
+    --nproc 1
 
 Add `--dry-run` to preview the conversion without writing output files.
 
@@ -83,7 +85,8 @@ Programmatically perform the same conversion:
     input_folder="ramses_outputs/sedov_3d",
     output_prefix="sedov_test",
     fields=["density","velocity", "pressure"],
-    dry_run=False
+    dry_run=False,
+    output_directory="./vtk_outputs"
     )
     converter.process_output(1)
 

@@ -10,11 +10,9 @@ Parallel execution utilities for chhavi.
 from __future__ import annotations
 
 from functools import partial
-from multiprocessing import cpu_count
 from typing import List, Optional, Tuple
 
 import logging
-import sys
 import time
 import concurrent.futures
 
@@ -35,10 +33,25 @@ def process_single_output(
     z_range_norm: Tuple[Optional[float], Optional[float]],
     dry_run: bool,
     verbose: bool,
+    output_directory: Optional[str] = None,
 ) -> None:
     """
     Worker function executed in each process. It configures logging and runs conversion
     for a single snapshot number.
+
+    Args:
+        output_num: Snapshot/output number being processed.
+        input_folder: Root input directory containing RAMSES outputs.
+        output_prefix: File prefix for output files.
+        fields: Optional list of scalar/vector fields to export.
+        level_start: Optional AMR level filtering start.
+        level_end: Optional AMR level filtering end.
+        x_range_norm: Optional normalized filtering range on X.
+        y_range_norm: Optional normalized filtering range on Y.
+        z_range_norm: Optional normalized filtering range on Z.
+        dry_run: Flag to skip writing output files.
+        verbose: Flag for verbose logging.
+        output_directory: Optional directory to save output files. If None, uses input_folder.
     """
     setup_logging(verbose)
 
@@ -53,6 +66,7 @@ def process_single_output(
             y_range_norm=y_range_norm,
             z_range_norm=z_range_norm,
             dry_run=dry_run,
+            output_directory=output_directory,
         )
         conv.process_output(output_num)
     except Exception:
@@ -73,14 +87,41 @@ def run_parallel_conversion(
     z_range_norm: Tuple[Optional[float], Optional[float]] = (None, None),
     dry_run: bool = False,
     verbose: bool = False,
+    nproc: Optional[int] = None,
+    output_directory: Optional[str] = None,
 ) -> None:
     """
     High-level parallel runner that dispatches conversion of multiple outputs.
 
-    If parallel execution fails, falls back to serial execution and continues on per-snapshot errors.
+    Parameters:
+    - output_numbers: List of snapshot numbers to convert.
+    - input_folder: Input directory containing RAMSES outputs.
+    - output_prefix: Prefix for output files.
+    - fields: Optional list of scalar/vector fields to export.
+    - level_start, level_end: Optional AMR level filtering.
+    - x_range_norm, y_range_norm, z_range_norm: Optional spatial filtering ranges (normalized).
+    - dry_run: If True, run without writing output files.
+    - verbose: Enable detailed logging.
+    - nproc: Number of CPU cores to use for parallel execution.
+             If None or not provided, defaults to 1 (serial execution).
+             When provided and positive, uses up to min(nproc, number of outputs) parallel workers.
+    - output_directory: Optional directory path to store generated output files.
+                        If None, defaults to input_folder.
+
+    Behavior:
+    - Attempts parallel execution using the specified number of workers.
+    - On parallel execution failure, falls back to serial processing per output,
+      continuing on errors without stopping the entire process.
+
+    Returns:
+    - None
     """
 
-    nworkers = max(1, min(cpu_count(), len(output_numbers)))
+    if nproc is not None and nproc > 0:
+        nworkers = min(nproc, len(output_numbers))
+    else:
+        nworkers = 1
+
     logger.info("Starting on %d worker(s) for outputs %s", nworkers, output_numbers)
     t0 = time.time()
 
@@ -96,12 +137,11 @@ def run_parallel_conversion(
         z_range_norm=z_range_norm,
         dry_run=dry_run,
         verbose=verbose,
+        output_directory=output_directory,
     )
 
-    # Try parallel execution first
     try:
         with concurrent.futures.ProcessPoolExecutor(max_workers=nworkers) as ex:
-            # ex.map will propagate exceptions from worker; worker itself logs and swallows; so this should be safe
             list(ex.map(worker, output_numbers))
     except Exception as e:
         logger.error("Parallel execution failed: %s", e)
@@ -111,7 +151,6 @@ def run_parallel_conversion(
             try:
                 worker(num)
             except Exception as ew:
-                # Worker should already catch; this is a last-resort guard
                 logger.exception("Serial worker failed for output %s: %s", num, ew)
 
     logger.info("Total elapsed: %.2fs", time.time() - t0)

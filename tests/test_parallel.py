@@ -21,7 +21,6 @@ SNAPSHOT_FOLDERS = ["output_00001", "output_00002"]
 # ──────────────────────────────────────────────────────────────
 
 def test_parallel_dry_run_single():
-
     """Run parallel conversion in dry-run mode for a single real snapshot."""
 
     snapshot = SNAPSHOT_FOLDERS[0]
@@ -34,12 +33,13 @@ def test_parallel_dry_run_single():
         output_prefix="test_amr",
         fields=None,
         dry_run=True,
-        verbose=False,
+        verbose=True,
+        nproc=1,
+        output_directory=None,  # Using default output directory
     )
 
 
 def test_parallel_dry_run_multiple():
-
     """Run parallel conversion in dry-run mode for multiple real snapshots."""
 
     output_numbers = [int(s.split("_")[-1]) for s in SNAPSHOT_FOLDERS]
@@ -51,5 +51,7 @@ def test_parallel_dry_run_multiple():
         output_prefix="test_amr",
         fields=None,
         dry_run=True,
-        verbose=False,
+        verbose=True,
+        nproc=2,
+        output_directory=None,  # Using default output directory
     )

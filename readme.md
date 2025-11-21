@@ -23,7 +23,8 @@ The package also includes test coverage, example scripts, and clear documentatio
   **vector fields** (velocity, magnetic_field, grav_acceleration)  
 - Dry-run mode to preview what would be written without creating files  
 - CLI and Python API for flexible use  
-- Parallel conversion support for multiple outputs  
+- Parallel conversion support with configurable number of workers (`--nproc`)  
+- Customizable output directory through `--output-dir` option  
 - Fully tested with `pytest`  
 
 ---
@@ -52,6 +53,8 @@ python -m chhavi.cli --base-dir ramses_outputs/
        --output-prefix sedov_test 
        --fields density,velocity,pressure 
        --dry-run
+       --output-dir ./vtk_outputs
+       --nproc 1
 ```
 
 Key options:  
@@ -60,7 +63,9 @@ Key options:
 - `-n` → Snapshot number(s)  
 - `--output-prefix` → Prefix for generated `.vtkhdf` files  
 - `--fields` → Comma-separated list of fields (scalars/vectors)  
-- `--dry-run` → Run without writing files  
+- `--dry-run` → Run without writing files
+- `--output-dir` → Directory to store `.vtkhdf` output files. Defaults to `--base-dir/--folder-name`.
+- `--nproc` → Number of CPU cores to use for parallel conversion (default: 1). Falls back to serial if unavailable.
 
 ---
 
@@ -73,7 +78,8 @@ converter = ChhaviConverter(
 input_folder="ramses_outputs/sedov_3d",
 output_prefix="sedov_test",
 fields=["density", "velocity"],
-dry_run=True
+dry_run=True,
+output_directory="./vtk_outputs"
 )
 
 converter.process_output(1)
@@ -93,7 +99,9 @@ This script:
 1. Lists available fields in snapshots  
 2. Prints dataset info  
 3. Performs a dry-run conversion  
-4. Displays scalar/vector fields to be written  
+4. Displays scalar/vector fields to be written
+   
+You can specify an output directory in the example usage by setting `OUTPUT_DIR='your/path'`.
 
 ---
 
@@ -159,7 +167,8 @@ Chhavi/
 
 - Default fields if `--fields` is not specified: `density`, `pressure`, `velocity`  
 - Logging: Verbose mode (`--verbose`) gives step-by-step information including number of cells retained per level  
-- Parallel execution automatically uses available CPU cores; falls back to serial if needed  
+- Parallel execution automatically uses specified CPU cores (`--nproc`); falls back to serial execution if needed  
+- Output directory is auto-created if it does not exist — no manual setup required  
 - If no cells survive filtering or fields are missing, the output file is skipped, with warnings logged  
 
 ---

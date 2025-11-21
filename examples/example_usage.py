@@ -16,6 +16,10 @@ Features demonstrated:
 2. Inspecting basic dataset info
 3. Performing a dry-run conversion (no files written)
 4. Showing physical fields that will be added to the output
+
+Note: The output directory is created automatically by Chhavi
+if it does not already exist.
+
 ─────────────────────────────────────────────────────────────
 
 """
@@ -35,6 +39,8 @@ SNAPSHOT_FOLDERS = ["output_00001", "output_00002"]
 FIELDS_TO_INSPECT = ["density", "velocity", "pressure"]
 
 DRY_RUN = True
+
+OUTPUT_DIR = None  # Set to e.g. "vtk_outputs" to specify output location, or None to use input folder
 
 
 # ──────────────────────────────────────────────────────────────
@@ -88,6 +94,7 @@ def main():
             output_prefix=f"example_{snapshot_name}",
             fields=FIELDS_TO_INSPECT,
             dry_run=DRY_RUN,
+            output_directory=OUTPUT_DIR,
         )
 
         print_physical_fields(converter.requested_fields)
